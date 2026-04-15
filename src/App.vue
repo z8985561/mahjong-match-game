@@ -1,9 +1,28 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useGameStore } from './stores/gameStore'
+import { GameState } from './types/mahjong'
+import GameMenu from './components/GameMenu.vue'
 import GameGrid from './components/GameGrid.vue'
+
+const gameStore = useGameStore()
 
 onMounted(() => {
   console.log('🀄 麻将消消乐游戏启动')
+})
+
+// 根据游戏状态显示不同的组件
+const currentComponent = computed(() => {
+  switch (gameStore.state) {
+    case GameState.MENU:
+      return GameMenu
+    case GameState.PLAYING:
+    case GameState.GAME_OVER:
+    case GameState.VICTORY:
+      return GameGrid
+    default:
+      return GameMenu
+  }
 })
 </script>
 
@@ -15,7 +34,7 @@ onMounted(() => {
     </header>
     
     <main class="game-container">
-      <GameGrid />
+      <component :is="currentComponent" />
     </main>
     
     <footer class="game-footer">

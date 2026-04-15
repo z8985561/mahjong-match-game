@@ -114,7 +114,7 @@ export const useGameStore = defineStore('game', () => {
       newGrid[row] = []
       for (let col = 0; col < size; col++) {
         const tile = tiles[row * size + col]
-        newGrid[row][row] = {
+        newGrid[row][col] = {
           ...tile,
           row,
           col,
