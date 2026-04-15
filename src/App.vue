@@ -36,8 +36,8 @@ const currentComponent = computed(() => {
     </header>
     
     <main class="game-container">
-      <!-- 调试信息 -->
-      <div v-if="false" style="color: red; padding: 10px; background: rgba(255,0,0,0.1);">
+      <!-- 强制调试信息 -->
+      <div style="color: red; padding: 10px; background: rgba(255,0,0,0.1); position: fixed; top: 0; left: 0; z-index: 9999;">
         调试信息: state={{ gameStore.state }}, GameState.MENU={{ GameState.MENU }}
       </div>
       
