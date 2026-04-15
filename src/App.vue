@@ -15,15 +15,15 @@ onMounted(() => {
 
 // 根据游戏状态显示不同的组件
 const currentComponent = computed(() => {
-  switch (gameStore.state) {
-    case GameState.MENU:
-      return GameMenu
-    case GameState.PLAYING:
-    case GameState.GAME_OVER:
-    case GameState.VICTORY:
-      return GameGrid
-    default:
-      return GameMenu
+  console.log('当前游戏状态值:', gameStore.state)
+  console.log('GameState.MENU值:', GameState.MENU)
+  
+  if (gameStore.state === GameState.MENU) {
+    console.log('显示GameMenu组件')
+    return GameMenu
+  } else {
+    console.log('显示GameGrid组件')
+    return GameGrid
   }
 })
 </script>
@@ -36,7 +36,16 @@ const currentComponent = computed(() => {
     </header>
     
     <main class="game-container">
-      <component :is="currentComponent" />
+      <!-- 调试信息 -->
+      <div v-if="false" style="color: red; padding: 10px; background: rgba(255,0,0,0.1);">
+        调试信息: state={{ gameStore.state }}, GameState.MENU={{ GameState.MENU }}
+      </div>
+      
+      <!-- 游戏菜单 -->
+      <GameMenu v-if="gameStore.state === GameState.MENU" />
+      
+      <!-- 游戏网格（其他状态） -->
+      <GameGrid v-else />
     </main>
     
     <footer class="game-footer">
