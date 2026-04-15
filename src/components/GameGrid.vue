@@ -233,7 +233,7 @@ onUnmounted(() => {
     
     <!-- 游戏网格 -->
     <div class="game-grid" :style="gridStyle">
-      <template v-for="row in gameStore.grid" :key="row">
+      <template v-for="(row, rowIndex) in gameStore.grid" :key="`row-${rowIndex}`">
         <template v-for="tile in row" :key="tile.id">
           <MahjongTile
             :tile="tile"
