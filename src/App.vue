@@ -9,6 +9,8 @@ const gameStore = useGameStore()
 
 onMounted(() => {
   console.log('🀄 麻将消消乐游戏启动')
+  console.log('当前游戏状态:', gameStore.state)
+  console.log('GameState枚举值:', GameState)
 })
 
 // 根据游戏状态显示不同的组件
