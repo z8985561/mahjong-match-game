@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useGameStore } from './stores/gameStore'
 import { GameState } from './types/mahjong'
 import GameMenu from './components/GameMenu.vue'
@@ -9,22 +9,6 @@ const gameStore = useGameStore()
 
 onMounted(() => {
   console.log('🀄 麻将消消乐游戏启动')
-  console.log('当前游戏状态:', gameStore.state)
-  console.log('GameState枚举值:', GameState)
-})
-
-// 根据游戏状态显示不同的组件
-const currentComponent = computed(() => {
-  console.log('当前游戏状态值:', gameStore.state)
-  console.log('GameState.MENU值:', GameState.MENU)
-  
-  if (gameStore.state === GameState.MENU) {
-    console.log('显示GameMenu组件')
-    return GameMenu
-  } else {
-    console.log('显示GameGrid组件')
-    return GameGrid
-  }
 })
 </script>
 
@@ -36,11 +20,6 @@ const currentComponent = computed(() => {
     </header>
     
     <main class="game-container">
-      <!-- 强制调试信息 -->
-      <div style="color: red; padding: 10px; background: rgba(255,0,0,0.1); position: fixed; top: 0; left: 0; z-index: 9999;">
-        调试信息: state={{ gameStore.state }}, GameState.MENU={{ GameState.MENU }}
-      </div>
-      
       <!-- 游戏菜单 -->
       <GameMenu v-if="gameStore.state === GameState.MENU" />
       
@@ -49,7 +28,7 @@ const currentComponent = computed(() => {
     </main>
     
     <footer class="game-footer">
-      <p>© 2026 麻将消消乐游戏 | 基于 Vue 3 + TypeScript 开发</p>
+      <p>© 2026 麻将消消乐游戏 | 基于 Vue 3 + TypeScript 开发 | v1.0.0 (2026/4/16)</p>
     </footer>
   </div>
 </template>
