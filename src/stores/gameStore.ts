@@ -14,6 +14,7 @@ import {
 import { generateRandomTiles, shuffleTiles } from '../utils/tileGenerator'
 import { findMatches, hasAvailableMoves } from '../utils/matchEngine'
 import { createAudioEngine } from '../utils/audioEngine'
+import { LEVELS, LevelConfig, loadLevelProgress, saveLevelProgress, LevelProgress } from '../types/levels'
 
 export const useGameStore = defineStore('game', () => {
   // 核心状态
@@ -22,6 +23,11 @@ export const useGameStore = defineStore('game', () => {
   const grid = ref<GameTile[][]>([])
   const selectedTile = ref<GameTile | null>(null)
   const isDeadlock = ref(false) // 是否死局（无可用移动）
+  
+  // 关卡模式相关
+  const currentLevel = ref<LevelConfig | null>(null)
+  const currentLevelId = ref(0)
+  const levelProgress = ref<LevelProgress>(loadLevelProgress())
   
   // 统计数据
   const score = ref(0)
@@ -68,6 +74,10 @@ export const useGameStore = defineStore('game', () => {
   const isPlaying = computed(() => state.value === GameState.PLAYING)
   
   const remainingMoves = computed(() => {
+    // 关卡模式使用关卡配置
+    if (currentLevel.value) {
+      return Math.max(0, currentLevel.value.maxMoves - moves.value)
+    }
     const config = currentModeConfig.value
     if (config.maxMoves === 0) return '∞'
     return Math.max(0, config.maxMoves - moves.value)
@@ -81,6 +91,11 @@ export const useGameStore = defineStore('game', () => {
   })
   
   const progressPercentage = computed(() => {
+    // 关卡模式使用关卡配置
+    if (currentLevel.value) {
+      const progress = (score.value / currentLevel.value.targetScore) * 100
+      return Math.min(100, Math.max(0, progress))
+    }
     const config = currentModeConfig.value
     if (config.targetScore === 0) return 0
     
@@ -117,11 +132,14 @@ export const useGameStore = defineStore('game', () => {
   
   // 生成游戏网格（确保有解）
   const generateGrid = () => {
-    const size = settings.gridSize
+    // 关卡模式使用关卡配置的参数
+    const size = currentLevel.value ? currentLevel.value.gridSize : settings.gridSize
+    const suits = currentLevel.value?.suits
+    const suitRange = currentLevel.value?.suitRange
     const maxAttempts = 100
     
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const tiles = generateRandomTiles(size * size)
+      const tiles = generateRandomTiles(size * size, suits, suitRange)
       const newGrid: GameTile[][] = []
       
       for (let row = 0; row < size; row++) {
@@ -303,7 +321,7 @@ export const useGameStore = defineStore('game', () => {
   
   // 移除已匹配的牌
   const removeMatchedTiles = () => {
-    const size = settings.gridSize
+    const size = currentLevel.value ? currentLevel.value.gridSize : settings.gridSize
     const newGrid = grid.value.map(row => [...row])
     
     // 标记所有待移除的牌
@@ -335,8 +353,8 @@ export const useGameStore = defineStore('game', () => {
           tile.row = row
           newGrid[row][col] = tile
         } else {
-          // 生成新牌填充空缺
-          const newTile = generateRandomTiles(1)[0]
+          // 生成新牌填充空缺（使用关卡配置的花色和范围）
+          const newTile = generateRandomTiles(1, currentLevel.value?.suits, currentLevel.value?.suitRange)[0]
           newGrid[row][col] = {
             ...newTile,
             row,
@@ -360,7 +378,7 @@ export const useGameStore = defineStore('game', () => {
   
   // 洗牌（死局时使用）
   const shuffleGrid = () => {
-    const size = settings.gridSize
+    const size = currentLevel.value ? currentLevel.value.gridSize : settings.gridSize
     const maxAttempts = 100
     
     // 收集所有牌的 suit + value
@@ -414,6 +432,50 @@ export const useGameStore = defineStore('game', () => {
   
   // 检查游戏状态
   const checkGameState = () => {
+    // 关卡模式的胜利和失败判定
+    if (currentLevel.value) {
+      const level = currentLevel.value
+      
+      // 关卡胜利：达到目标分数
+      if (score.value >= level.targetScore) {
+        state.value = GameState.VICTORY
+        playSound(SoundType.VICTORY)
+        
+        // 计算星星数
+        const ratio = score.value / level.targetScore
+        let earnedStars = 1
+        if (ratio >= 1.5) earnedStars = 2
+        if (ratio >= 2.0) earnedStars = 3
+        
+        // 更新关卡进度
+        const progress = loadLevelProgress()
+        if (!progress.bestScores[level.id] || score.value > progress.bestScores[level.id]) {
+          progress.bestScores[level.id] = score.value
+        }
+        if (!progress.stars[level.id] || earnedStars > progress.stars[level.id]) {
+          progress.stars[level.id] = earnedStars
+        }
+        // 解锁下一关
+        if (level.id >= progress.maxUnlockedLevel && level.id < LEVELS.length) {
+          progress.maxUnlockedLevel = level.id + 1
+        }
+        saveLevelProgress(progress)
+        levelProgress.value = progress
+        
+        return
+      }
+      
+      // 关卡失败：步数用完且未达标
+      if (moves.value >= level.maxMoves) {
+        state.value = GameState.GAME_OVER
+        playSound(SoundType.GAME_OVER)
+        return
+      }
+      
+      // 检查死局（步数用完前不因死局结束，洗牌处理即可）
+      return
+    }
+    
     const config = currentModeConfig.value
     
     // 检查胜利条件
@@ -539,6 +601,45 @@ export const useGameStore = defineStore('game', () => {
   // 返回菜单
   const returnToMenu = () => {
     stopTimer()
+    currentLevel.value = null
+    currentLevelId.value = 0
+    state.value = GameState.MENU
+  }
+  
+  // 开始指定关卡
+  const startLevel = (levelId: number) => {
+    const level = LEVELS.find(l => l.id === levelId)
+    if (!level) return
+    
+    currentLevel.value = level
+    currentLevelId.value = levelId
+    gameMode.value = GameMode.LEVEL
+    stopTimer()
+    resetGame()
+    generateGrid()
+    startTimer()
+    state.value = GameState.PLAYING
+  }
+  
+  // 重玩当前关卡
+  const replayLevel = () => {
+    if (currentLevel.value) {
+      startLevel(currentLevel.value.id)
+    }
+  }
+  
+  // 进入下一关
+  const nextLevel = () => {
+    const nextId = currentLevelId.value + 1
+    if (nextId <= LEVELS.length) {
+      startLevel(nextId)
+    }
+  }
+  
+  // 返回关卡选择
+  const returnToLevelSelect = () => {
+    stopTimer()
+    currentLevel.value = null
     state.value = GameState.MENU
   }
   
@@ -556,6 +657,11 @@ export const useGameStore = defineStore('game', () => {
     comboSystem,
     settings,
     isDeadlock,
+    
+    // 关卡状态
+    currentLevel,
+    currentLevelId,
+    levelProgress,
     
     // 计算属性
     currentModeConfig,
@@ -577,6 +683,10 @@ export const useGameStore = defineStore('game', () => {
     restartGame,
     returnToMenu,
     playSound,
-    loadLeaderboard
+    loadLeaderboard,
+    startLevel,
+    replayLevel,
+    nextLevel,
+    returnToLevelSelect
   }
 })

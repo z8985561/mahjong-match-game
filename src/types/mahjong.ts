@@ -34,7 +34,8 @@ export enum GameMode {
   ENDLESS = 'endless',  // 无尽模式
   INFINITE = 'infinite', // 无限模式（别名）
   CHALLENGE = 'challenge', // 挑战模式
-  TIMED = 'timed'       // 限时模式（别名）
+  TIMED = 'timed',      // 限时模式（别名）
+  LEVEL = 'level'       // 闯关模式
 }
 
 export enum GameState {
@@ -169,6 +170,13 @@ export const GAME_CONFIG = {
       maxMoves: 0,
       targetScore: 1500,
       timeLimit: 90
+    },
+    [GameMode.LEVEL]: {
+      name: '闯关模式',
+      description: '挑战10个精心设计的关卡',
+      maxMoves: 0,
+      targetScore: 0,
+      timeLimit: 0
     }
   },
   

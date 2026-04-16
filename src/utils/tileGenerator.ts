@@ -71,17 +71,18 @@ export const createTile = (id: number, suit: MahjongSuit, value: number): Mahjon
 }
 
 // 生成指定数量的随机麻将牌
-export const generateRandomTiles = (count: number): MahjongTile[] => {
+export const generateRandomTiles = (count: number, suits?: MahjongSuit[], suitRange?: number): MahjongTile[] => {
   const tiles: MahjongTile[] = []
   let tileId = 0
   
   // 基础牌型（萬、条、筒各1-9）
-  const basicSuits = [MahjongSuit.WAN, MahjongSuit.TIAO, MahjongSuit.TONG]
+  const basicSuits = suits || [MahjongSuit.WAN, MahjongSuit.TIAO, MahjongSuit.TONG]
+  const maxRange = suitRange || 9
   
   // 生成足够数量的牌
   while (tiles.length < count) {
     for (const suit of basicSuits) {
-      for (let value = 1; value <= GAME_CONFIG.TILES[suit].count; value++) {
+      for (let value = 1; value <= maxRange; value++) {
         if (tiles.length < count) {
           tiles.push(createTile(tileId++, suit, value))
         } else {
