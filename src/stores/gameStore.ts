@@ -5,8 +5,6 @@ import {
   GameMode,
   GameState,
   MatchResult,
-  MatchType,
-  MahjongSuit,
   GAME_CONFIG,
   SoundType,
   LeaderboardEntry
@@ -493,7 +491,7 @@ export const useGameStore = defineStore('game', () => {
       return
     }
     
-    if (config.timeLimit > 0 && remainingTime.value <= 0) {
+    if (config.timeLimit > 0 && typeof remainingTime.value === 'number' && remainingTime.value <= 0) {
       state.value = GameState.GAME_OVER
       playSound(SoundType.GAME_OVER)
       return

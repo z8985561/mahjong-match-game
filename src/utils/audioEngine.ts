@@ -371,7 +371,7 @@ export const audioUtils = {
   },
   
   // 生成和弦
-  generateChord(rootNote: string = 'C4', chordType: string = 'major'): number[] {
+  generateChord(_rootNote: string = 'C4', chordType: string = 'major'): number[] {
     const noteFrequencies: Record<string, number> = {
       'C4': 261.63,
       'E4': 329.63,

@@ -383,7 +383,7 @@ export const hasAvailableMoves = (grid: GameTile[][]): boolean => {
 }
 
 // 计算匹配的基础分数
-export const calculateBaseScore = (matchType: MatchType, tileCount: number): number => {
+export const calculateBaseScore = (matchType: MatchType, _tileCount: number): number => {
   const baseScore = GAME_CONFIG.SCORES[matchType] || 0
   
   // 对于四连，增加额外分数

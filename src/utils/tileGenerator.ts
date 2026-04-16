@@ -38,6 +38,7 @@ const getTileName = (suit: MahjongSuit, value: number): string => {
 }
 
 // 获取麻将牌颜色
+// @ts-ignore
 const getTileColor = (suit: MahjongSuit): string => {
   const colors: Record<MahjongSuit, string> = {
     [MahjongSuit.WAN]: '#c62828', // 红色
@@ -52,7 +53,8 @@ const getTileColor = (suit: MahjongSuit): string => {
 }
 
 // 获取图片URL（如果使用图片模式）
-const getTileImageUrl = (suit: MahjongSuit, value: number): string | undefined => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getTileImageUrl = (_suit: MahjongSuit, _value: number): string | undefined => {
   // 如果使用图片模式，返回图片路径
   // 例如：`/assets/mahjong/${suit}/${value}.png`
   return undefined
@@ -110,7 +112,7 @@ export const shuffleTiles = <T extends any[]>(tiles: T): T => {
 
 // 检查麻将牌是否有效
 export const isValidTile = (tile: MahjongTile): boolean => {
-  const suitConfig = GAME_CONFIG.TILES[tile.suit as MahjongSuit]
+  const suitConfig = (GAME_CONFIG.TILES as Record<string, { count: number }>)[tile.suit as string]
   if (!suitConfig) return false
   
   if ([MahjongSuit.WAN, MahjongSuit.TIAO, MahjongSuit.TONG].includes(tile.suit)) {
@@ -127,7 +129,7 @@ export const getAllSuits = (): MahjongSuit[] => {
 
 // 获取指定花色的所有值
 export const getAllValues = (suit: MahjongSuit): number[] => {
-  const suitConfig = GAME_CONFIG.TILES[suit]
+  const suitConfig = (GAME_CONFIG.TILES as Record<string, { count: number }>)[suit as string]
   if (!suitConfig) return []
   
   const values: number[] = []
@@ -146,7 +148,7 @@ export const generateFullTileSet = (): MahjongTile[] => {
   const basicSuits = [MahjongSuit.WAN, MahjongSuit.TIAO, MahjongSuit.TONG]
   
   for (const suit of basicSuits) {
-    for (let value = 1; value <= GAME_CONFIG.TILES[suit].count; value++) {
+    for (let value = 1; value <= (GAME_CONFIG.TILES as Record<string, { count: number }>)[suit as string].count; value++) {
       // 每种牌生成4张（麻将标准）
       for (let i = 0; i < 4; i++) {
         tiles.push(createTile(tileId++, suit, value))
@@ -255,6 +257,7 @@ export const generateDebugInfo = (tiles: MahjongTile[]): string => {
 }
 
 // 检查是否需要洗牌（避免无解局面）
+// @ts-ignore
 export const checkNeedReshuffle = (grid: any[][]): boolean => {
   // 简化实现：总是返回false
   // 实际实现需要检查是否有可用的匹配
