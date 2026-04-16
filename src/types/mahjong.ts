@@ -30,9 +30,11 @@ export interface GameTile extends MahjongTile {
 // 游戏状态
 export enum GameMode {
   STEPS = 'steps',      // 步数模式
-  INFINITE = 'infinite', // 无限模式
+  TIME = 'time',        // 限时模式
+  ENDLESS = 'endless',  // 无尽模式
+  INFINITE = 'infinite', // 无限模式（别名）
   CHALLENGE = 'challenge', // 挑战模式
-  TIMED = 'timed'       // 限时模式
+  TIMED = 'timed'       // 限时模式（别名）
 }
 
 export enum GameState {
@@ -128,9 +130,23 @@ export const GAME_CONFIG = {
   MODES: {
     [GameMode.STEPS]: {
       name: '步数模式',
-      description: '30步内达到1000分',
-      maxMoves: 30,
+      description: '60步内获得最高分',
+      maxMoves: 60,
       targetScore: 1000,
+      timeLimit: 0
+    },
+    [GameMode.TIME]: {
+      name: '限时模式',
+      description: '180秒内获得最高分',
+      maxMoves: 0,
+      targetScore: 1500,
+      timeLimit: 180
+    },
+    [GameMode.ENDLESS]: {
+      name: '无尽模式',
+      description: '无步数限制，自由消除',
+      maxMoves: 0,
+      targetScore: 0,
       timeLimit: 0
     },
     [GameMode.INFINITE]: {

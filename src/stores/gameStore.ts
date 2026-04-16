@@ -51,7 +51,17 @@ export const useGameStore = defineStore('game', () => {
   const audioEngine = createAudioEngine()
   
   // 计算属性
-  const currentModeConfig = computed(() => GAME_CONFIG.MODES[gameMode.value])
+  const currentModeConfig = computed(() => {
+    const config = GAME_CONFIG.MODES[gameMode.value as keyof typeof GAME_CONFIG.MODES]
+    // 防止找不到模式配置时崩溃，提供默认值
+    return config || {
+      name: '无尽模式',
+      description: '无步数限制，自由消除',
+      maxMoves: 0,
+      targetScore: 0,
+      timeLimit: 0
+    }
+  })
   const isGameOver = computed(() => state.value === GameState.GAME_OVER)
   const isVictory = computed(() => state.value === GameState.VICTORY)
   const isPlaying = computed(() => state.value === GameState.PLAYING)
