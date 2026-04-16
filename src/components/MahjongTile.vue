@@ -218,7 +218,23 @@ const handleTouchEnd = (event: TouchEvent) => {
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
 }
 
-/* 花色特定样式 */
+/* 花色特定背景 */
+.suit-wan {
+  background: linear-gradient(145deg, #fef0f0, #fde0e0) !important;
+  border: 2px solid rgba(198, 40, 40, 0.2);
+}
+
+.suit-tiao {
+  background: linear-gradient(145deg, #edf7ee, #dff0e0) !important;
+  border: 2px solid rgba(46, 125, 50, 0.2);
+}
+
+.suit-tong {
+  background: linear-gradient(145deg, #fff5eb, #ffecd5) !important;
+  border: 2px solid rgba(230, 126, 34, 0.2);
+}
+
+/* 花色特定文字颜色 */
 .suit-wan .tile-name {
   color: #c62828;
   font-weight: 700;
@@ -230,7 +246,7 @@ const handleTouchEnd = (event: TouchEvent) => {
 }
 
 .suit-tong .tile-name {
-  color: #1565c0;
+  color: #d35400;
   font-weight: 700;
 }
 
