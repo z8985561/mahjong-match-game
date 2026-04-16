@@ -218,35 +218,35 @@ const handleTouchEnd = (event: TouchEvent) => {
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
 }
 
-/* 花色特定背景 */
+/* 花色特定背景 - 三种花色用冷暖对比色区分 */
 .suit-wan {
-  background: linear-gradient(145deg, #fef0f0, #fde0e0) !important;
-  border: 2px solid rgba(198, 40, 40, 0.2);
-}
-
-.suit-tiao {
-  background: linear-gradient(145deg, #edf7ee, #dff0e0) !important;
-  border: 2px solid rgba(46, 125, 50, 0.2);
+  background: linear-gradient(145deg, #e8f0fe, #d2e3fc) !important;
+  border: 2px solid rgba(26, 115, 232, 0.25);
 }
 
 .suit-tong {
-  background: linear-gradient(145deg, #fff5eb, #ffecd5) !important;
-  border: 2px solid rgba(230, 126, 34, 0.2);
+  background: linear-gradient(145deg, #fef3e2, #fde8c8) !important;
+  border: 2px solid rgba(230, 126, 34, 0.25);
+}
+
+.suit-tiao {
+  background: linear-gradient(145deg, #e6f4ea, #ceead6) !important;
+  border: 2px solid rgba(46, 125, 50, 0.25);
 }
 
 /* 花色特定文字颜色 */
 .suit-wan .tile-name {
-  color: #c62828;
-  font-weight: 700;
-}
-
-.suit-tiao .tile-name {
-  color: #2e7d32;
+  color: #1a73e8;
   font-weight: 700;
 }
 
 .suit-tong .tile-name {
   color: #d35400;
+  font-weight: 700;
+}
+
+.suit-tiao .tile-name {
+  color: #2e7d32;
   font-weight: 700;
 }
 
