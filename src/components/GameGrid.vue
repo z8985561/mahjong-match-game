@@ -264,6 +264,14 @@ onUnmounted(() => {
       </span>
     </div>
     
+    <!-- 死局洗牌提示 -->
+    <div 
+      v-if="gameStore.isDeadlock" 
+      class="shuffle-banner"
+    >
+      <span class="shuffle-text">🔀 无可用移动，自动洗牌中...</span>
+    </div>
+    
     <!-- 操作提示 -->
     <div class="game-hints">
       <div class="hint-item">
@@ -455,6 +463,27 @@ onUnmounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.shuffle-banner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(45deg, #6c5ce7, #a29bfe);
+  color: white;
+  padding: 20px 40px;
+  border-radius: 20px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  z-index: 1001;
+  box-shadow: 0 10px 30px rgba(108, 92, 231, 0.4);
+  animation: shufflePulse 0.6s ease-in-out infinite alternate;
+}
+
+.shuffle-text {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
 .hint-item {
   display: flex;
   align-items: center;
@@ -509,6 +538,17 @@ onUnmounted(() => {
   }
   100% {
     transform: translateX(100%);
+  }
+}
+
+@keyframes shufflePulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0.8;
   }
 }
 

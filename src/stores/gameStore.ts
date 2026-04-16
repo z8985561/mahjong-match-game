@@ -12,7 +12,7 @@ import {
   LeaderboardEntry
 } from '../types/mahjong'
 import { generateRandomTiles, shuffleTiles } from '../utils/tileGenerator'
-import { findMatches } from '../utils/matchEngine'
+import { findMatches, hasAvailableMoves } from '../utils/matchEngine'
 import { createAudioEngine } from '../utils/audioEngine'
 
 export const useGameStore = defineStore('game', () => {
@@ -21,6 +21,7 @@ export const useGameStore = defineStore('game', () => {
   const gameMode = ref<GameMode>(GameMode.STEPS)
   const grid = ref<GameTile[][]>([])
   const selectedTile = ref<GameTile | null>(null)
+  const isDeadlock = ref(false) // 是否死局（无可用移动）
   
   // 统计数据
   const score = ref(0)
@@ -114,12 +115,42 @@ export const useGameStore = defineStore('game', () => {
     audioEngine.stopAll()
   }
   
-  // 生成游戏网格
+  // 生成游戏网格（确保有解）
   const generateGrid = () => {
     const size = settings.gridSize
+    const maxAttempts = 100
+    
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const tiles = generateRandomTiles(size * size)
+      const newGrid: GameTile[][] = []
+      
+      for (let row = 0; row < size; row++) {
+        newGrid[row] = []
+        for (let col = 0; col < size; col++) {
+          const tile = tiles[row * size + col]
+          newGrid[row][col] = {
+            ...tile,
+            row,
+            col,
+            isSelected: false,
+            isMatched: false,
+            isRemovable: false
+          }
+        }
+      }
+      
+      // 检查是否有可用移动
+      if (hasAvailableMoves(newGrid)) {
+        grid.value = newGrid
+        isDeadlock.value = false
+        return
+      }
+    }
+    
+    // 极端情况：100次都无法生成有解的棋盘，强制使用最后一个
+    console.warn('100次尝试后仍未生成有解棋盘，使用最后一次结果')
     const tiles = generateRandomTiles(size * size)
     const newGrid: GameTile[][] = []
-    
     for (let row = 0; row < size; row++) {
       newGrid[row] = []
       for (let col = 0; col < size; col++) {
@@ -134,9 +165,7 @@ export const useGameStore = defineStore('game', () => {
         }
       }
     }
-    
     grid.value = newGrid
-    checkAvailableMoves()
   }
   
   // 选择麻将牌
@@ -259,7 +288,17 @@ export const useGameStore = defineStore('game', () => {
     
     // 移除已匹配的牌并填充新牌
     removeMatchedTiles()
-    checkAvailableMoves()
+    
+    // 检查死局
+    if (!checkAvailableMoves()) {
+      isDeadlock.value = true
+      // 短暂延迟后自动洗牌，让用户看到死局提示
+      setTimeout(() => {
+        shuffleGrid()
+      }, 800)
+    } else {
+      isDeadlock.value = false
+    }
   }
   
   // 移除已匹配的牌
@@ -313,11 +352,64 @@ export const useGameStore = defineStore('game', () => {
     grid.value = newGrid
   }
   
-  // 检查是否有可用的移动
-  const checkAvailableMoves = () => {
-    // 简化实现：总是返回true，避免阻塞游戏
-    // 实际实现需要检查所有可能的相邻交换是否能产生匹配
-    return true
+  // 检查是否有可用的移动（真正实现）
+  const checkAvailableMoves = (): boolean => {
+    if (grid.value.length === 0) return false
+    return hasAvailableMoves(grid.value)
+  }
+  
+  // 洗牌（死局时使用）
+  const shuffleGrid = () => {
+    const size = settings.gridSize
+    const maxAttempts = 100
+    
+    // 收集所有牌的 suit + value
+    const allTiles: Array<{ suit: string; value: number }> = []
+    for (let row = 0; row < size; row++) {
+      for (let col = 0; col < size; col++) {
+        const tile = grid.value[row][col]
+        if (tile && !tile.isMatched) {
+          allTiles.push({ suit: tile.suit, value: tile.value })
+        }
+      }
+    }
+    
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      // 洗牌
+      const shuffled = shuffleTiles(allTiles)
+      let idx = 0
+      
+      const newGrid: GameTile[][] = []
+      for (let row = 0; row < size; row++) {
+        newGrid[row] = []
+        for (let col = 0; col < size; col++) {
+          const tile = grid.value[row][col]
+          if (tile && !tile.isMatched) {
+            const st = shuffled[idx++]
+            newGrid[row][col] = {
+              ...tile,
+              suit: st.suit as any,
+              value: st.value,
+              name: '',
+              unicode: ''
+            }
+          } else {
+            newGrid[row][col] = tile
+          }
+        }
+      }
+      
+      // 检查洗牌后是否有解
+      if (hasAvailableMoves(newGrid)) {
+        grid.value = newGrid
+        isDeadlock.value = false
+        playSound(SoundType.SHUFFLE)
+        return
+      }
+    }
+    
+    console.warn('100次洗牌尝试后仍无解')
+    isDeadlock.value = true
   }
   
   // 检查游戏状态
@@ -463,6 +555,7 @@ export const useGameStore = defineStore('game', () => {
     elapsedTime,
     comboSystem,
     settings,
+    isDeadlock,
     
     // 计算属性
     currentModeConfig,
@@ -480,6 +573,7 @@ export const useGameStore = defineStore('game', () => {
     setGameMode,
     toggleSound,
     toggleHints,
+    shuffleGrid,
     restartGame,
     returnToMenu,
     playSound,
